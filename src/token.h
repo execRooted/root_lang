@@ -6,12 +6,12 @@
 /*
  * Lexical token categories for root_lang.
  *
- * root_lang deliberately uses its own keyword vocabulary:
- *   fn / gives / give        - function, return type, return
+ * root_lang keyword vocabulary:
+ *   fn / returns / return    - function, return type, return
  *   let / const              - bindings
- *   when / elsewhen / orelse - conditionals
- *   loop / walk              - while / for
- *   blueprint / choices      - struct / enum
+ *   if / else if / else      - conditionals
+ *   while / for              - loops
+ *   struct / enum            - aggregate and enumeration types
  *   void                     - absence of a value
  *   use ... aka ...          - module import
  *   native                   - foreign (C) linkage

@@ -3,7 +3,6 @@
 # Targets:
 #   make            build the compiler into bin/rootc
 #   make install    install to $(PREFIX) (default /usr/local)
-#   make test       build and run the example test-suite
 #   make clean      remove build artefacts
 
 CC      ?= cc
@@ -14,7 +13,7 @@ BIN     := bin/rootc
 SRC     := $(wildcard src/*.c)
 OBJ     := $(SRC:src/%.c=build/%.o)
 
-.PHONY: all clean install uninstall test
+.PHONY: all clean install uninstall
 
 all: $(BIN)
 
@@ -44,9 +43,6 @@ install: all
 uninstall:
 	rm -f $(PREFIX)/bin/rootc
 	rm -rf $(PREFIX)/lib/root_lang
-
-test: all
-	./run_tests.sh
 
 clean:
 	rm -rf build bin

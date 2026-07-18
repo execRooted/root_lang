@@ -423,7 +423,7 @@ static bool starts_var_decl(Parser *p) {
 }
 
 static Stmt *parse_when(Parser *p) {
-    Token *kw = advance(p); /* when / elsewhen */
+    Token *kw = advance(p); /* if */
     expect(p, TK_LPAREN, "'('");
     Expr *cond = parse_expr(p);
     expect(p, TK_RPAREN, "')'");
@@ -431,13 +431,19 @@ static Stmt *parse_when(Parser *p) {
     s->cond = cond;
     s->then_body = parse_block(p);
 
-    if (check(p, TK_KW_ELSEWHEN)) {
-        Stmt *chained = parse_when(p);
-        stmt_list_push(&s->else_body, chained);
-        s->has_else = true;
-    } else if (match(p, TK_KW_ORELSE)) {
-        s->else_body = parse_block(p);
-        s->has_else = true;
+    if (check(p, TK_KW_ORELSE)) {
+        /* `else if (...)` chains into a nested conditional; a bare `else`
+           takes a block. */
+        if (p->toks[p->pos + 1].kind == TK_KW_WHEN) {
+            advance(p); /* consume 'else' */
+            Stmt *chained = parse_when(p);
+            stmt_list_push(&s->else_body, chained);
+            s->has_else = true;
+        } else {
+            advance(p); /* consume 'else' */
+            s->else_body = parse_block(p);
+            s->has_else = true;
+        }
     }
     return s;
 }

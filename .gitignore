@@ -5,20 +5,6 @@
 # generated C emitted next to compiled programs
 *.gen.c
 
-# compiled example executables (no extension, sit next to their .rtl source)
-examples/hello
-examples/fibonacci
-examples/structs
-examples/enums
-examples/pointers
-examples/arrays
-examples/strings
-examples/loops
-examples/casting
-examples/imports/main
-examples/file_editing/files
-examples/file_editing/scratch.txt
-
 # editor / OS noise
 *.o
 *.out

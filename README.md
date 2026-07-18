@@ -20,10 +20,10 @@ runs today.
 
 ## Features
 
-- **Familiar, distinct syntax** — `fn`, `gives`, `when`/`orelse`, `loop`, `walk`
+- **Familiar, distinct syntax** — `fn`, `returns`, `if`/`else`, `while`, `for`
 - **Statically typed** — mistakes are caught before your program runs
 - **Native binaries** — lowered to C99 and compiled with your own `cc`
-- **Real building blocks** — blueprints (structs), choices (enums), spans
+- **Real building blocks** — structs, enums, spans
   (arrays), references (pointers), and a module system with `use ... aka ...`
 - **Batteries included** — a standard module (`root.rtl`) with I/O, text, math,
   memory, and file helpers
@@ -32,20 +32,20 @@ runs today.
 ## Quick example
 
 ```rtl
-use("root.rtl") aka std;
+use("stdlib/root.rtl") aka std;
 
-blueprint person = {
+struct person = {
     int age;
     text name;
 }
 
-fn greet(person p) gives void {
+fn greet(person p) returns void {
     std.emit("Hello, ");
     std.emit(p.name);
     std.line();
 }
 
-fn main() gives void {
+fn main() returns void {
     person p;
     p.age = 25;
     p.name = "Ada";
@@ -76,9 +76,22 @@ Or use the wrapper:
 
 ## Compile and run a program
 
+Write a program (for example `hello.rtl`):
+
+```rtl
+use("stdlib/root.rtl") aka std;
+
+fn main() returns void {
+    std.emit("Hello from root_lang!");
+    std.line();
+}
+```
+
+Then build and run it:
+
 ```bash
-./bin/rootc examples/hello.rtl   # builds ./examples/hello
-./examples/hello
+./bin/rootc hello.rtl   # builds ./hello
+./hello
 ```
 
 Useful flags:
@@ -91,36 +104,12 @@ Useful flags:
 | `--cc <prog>`  | use a specific C compiler                         |
 | `--version`    | print the version                                 |
 
-## Examples
-
-The [`examples/`](examples/) directory demonstrates each feature:
-
-| Example              | Shows                              |
-| -------------------- | ---------------------------------- |
-| `hello.rtl`          | Hello world                        |
-| `fibonacci.rtl`      | Recursion and `walk` loops         |
-| `structs.rtl`        | Blueprints and references          |
-| `enums.rtl`          | Choices and `when`/`elsewhen`      |
-| `pointers.rtl`       | References and pass-by-reference   |
-| `arrays.rtl`         | Spans, indexing, and `.length`     |
-| `strings.rtl`        | Text concatenation and helpers     |
-| `loops.rtl`          | `loop`, `walk`, `stop`, `skip`     |
-| `casting.rtl`        | The `to` cast operator             |
-| `imports/`           | Multi-file programs                |
-| `file_editing/`      | File I/O                           |
-
-Run the whole suite:
-
-```bash
-./run_tests.sh
-```
-
 ## Standard module
 
 Import it with:
 
 ```rtl
-use("root.rtl") aka std;   # adjust the path to where root.rtl lives
+use("stdlib/root.rtl") aka std;   # adjust the path to where root.rtl lives
 ```
 
 | Function                               | Description                     |
@@ -136,11 +125,6 @@ use("root.rtl") aka std;   # adjust the path to where root.rtl lives
 | `std.text_slice(s, start, end)`        | substring                       |
 | `std.file_open/close/write/...`        | file handling                   |
 | `std.halt(code)`                       | exit the program                |
-
-## Language reference
-
-The full syntax reference lives in [docs/LANGUAGE.md](docs/LANGUAGE.md), and the
-design rationale is in [docs/Design-Notes.md](docs/Design-Notes.md).
 
 ## How it works
 

@@ -9,4 +9,4 @@ echo "Building root_lang compiler..."
 make "$@"
 echo
 echo "Compiler ready at ./bin/rootc"
-echo "Try:  ./bin/rootc examples/hello.rtl && ./examples/hello"
+echo "Usage:  ./bin/rootc yourprogram.rtl && ./yourprogram"
