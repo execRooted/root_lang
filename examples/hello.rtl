@@ -1,0 +1,6 @@
+use("../stdlib/root.rtl") aka std;
+
+fn main() gives void {
+    std.emit("Hello from root_lang!");
+    std.line();
+}

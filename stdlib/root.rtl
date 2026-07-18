@@ -1,0 +1,47 @@
+# root_lang standard module.
+#
+# Import into a program with:
+#     use("root.rtl") aka std;
+#
+# Every function here is bound to a symbol provided by the root_lang runtime
+# library (see runtime/rootrt.h). The compiler emits direct calls to those
+# native symbols, so there is zero overhead over hand written C.
+
+# ---- Output --------------------------------------------------------------
+# `emit` prints any scalar value; the runtime picks the right formatter.
+fn emit(any value) gives void native "rt_print" {}
+fn line() gives void native "rt_out_newline" {}
+fn emit_char(char c) gives void native "rt_out_char" {}
+
+# ---- Input ---------------------------------------------------------------
+fn ask_int() gives int native "rt_in_int" {}
+fn ask_real() gives double native "rt_in_real" {}
+fn ask_line() gives text native "rt_in_line" {}
+
+# ---- Math ----------------------------------------------------------------
+fn root(double x) gives double native "rt_root" {}
+fn power(double base, double exponent) gives double native "rt_power" {}
+fn abs(int value) gives int native "rt_abs_int" {}
+
+# ---- Text ----------------------------------------------------------------
+fn join(text a, text b) gives text native "rt_text_concat" {}
+fn text_size(text s) gives int native "rt_text_len" {}
+fn text_same(text a, text b) gives bool native "rt_text_equal" {}
+fn text_slice(text s, int start, int end) gives text native "rt_text_slice" {}
+
+# ---- Memory --------------------------------------------------------------
+fn reserve(int size) gives any native "rt_reserve" {}
+fn release(any ptr) gives void native "rt_release" {}
+fn copy(any dst, any src, int size) gives any native "rt_copy" {}
+fn regrow(any ptr, int size) gives any native "rt_regrow" {}
+
+# ---- Files ---------------------------------------------------------------
+fn file_open(text path, text mode) gives any native "rt_file_open" {}
+fn file_close(any handle) gives void native "rt_file_close" {}
+fn file_write(any handle, text data) gives void native "rt_file_write" {}
+fn file_read_line(any handle) gives text native "rt_file_read_line" {}
+fn file_ended(any handle) gives int native "rt_file_ended" {}
+fn file_remove(text path) gives void native "rt_file_remove" {}
+
+# ---- Program control -----------------------------------------------------
+fn halt(int code) gives void native "rt_halt" {}

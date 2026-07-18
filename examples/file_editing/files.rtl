@@ -1,0 +1,17 @@
+use("../../stdlib/root.rtl") aka std;
+
+fn main() gives void {
+    any f = std.file_open("scratch.txt", "w");
+    std.file_write(f, "Hello from root_lang!\n");
+    std.file_write(f, "File I/O works!\n");
+    std.file_close(f);
+
+    any r = std.file_open("scratch.txt", "r");
+    text line = std.file_read_line(r);
+    std.emit(line);
+    std.file_close(r);
+
+    std.file_remove("scratch.txt");
+    std.emit("done");
+    std.line();
+}

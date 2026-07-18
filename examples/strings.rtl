@@ -1,0 +1,22 @@
+use("../stdlib/root.rtl") aka std;
+
+fn main() gives void {
+    text first = "Hello";
+    text second = " World";
+    text greeting = first + second;
+
+    std.emit(greeting);
+    std.line();
+
+    std.emit("Length: ");
+    std.emit(greeting.length);
+    std.line();
+
+    when (std.text_same("abc", "abc")) {
+        std.emit("abc == abc");
+        std.line();
+    }
+
+    std.emit(std.text_slice("root_lang", 0, 4));
+    std.line();
+}

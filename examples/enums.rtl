@@ -1,0 +1,22 @@
+use("../stdlib/root.rtl") aka std;
+
+choices direction = {
+    NORTH,
+    SOUTH,
+    EAST,
+    WEST
+}
+
+fn describe(int d) gives void {
+    when (d == NORTH) { std.emit("Going north!"); std.line(); }
+    elsewhen (d == SOUTH) { std.emit("Going south!"); std.line(); }
+    elsewhen (d == EAST) { std.emit("Going east!"); std.line(); }
+    orelse { std.emit("Going west!"); std.line(); }
+}
+
+fn main() gives void {
+    describe(NORTH);
+    describe(EAST);
+    describe(SOUTH);
+    describe(WEST);
+}

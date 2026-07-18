@@ -1,0 +1,26 @@
+use("../stdlib/root.rtl") aka std;
+
+fn bump(int *p) gives void {
+    p.value += 1;
+}
+
+fn swap(int *a, int *b) gives void {
+    int t = a.value;
+    a.value = b.value;
+    b.value = t;
+}
+
+fn main() gives void {
+    int x = 5;
+    bump(x.address);
+    std.emit(x);
+    std.line();
+
+    int a = 10;
+    int b = 20;
+    swap(a.address, b.address);
+    std.emit(a);
+    std.line();
+    std.emit(b);
+    std.line();
+}

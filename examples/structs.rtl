@@ -1,0 +1,29 @@
+use("../stdlib/root.rtl") aka std;
+
+blueprint rectangle = {
+    float width;
+    float height;
+}
+
+fn area(rectangle r) gives float {
+    give r.width * r.height;
+}
+
+fn set_size(rectangle *r, float w, float h) gives void {
+    r.value.width = w;
+    r.value.height = h;
+}
+
+fn main() gives void {
+    rectangle r;
+    r.width = 5.0;
+    r.height = 3.0;
+    std.emit("Area: ");
+    std.emit(area(r));
+    std.line();
+
+    set_size(r.address, 10.0, 4.0);
+    std.emit("New area: ");
+    std.emit(area(r));
+    std.line();
+}

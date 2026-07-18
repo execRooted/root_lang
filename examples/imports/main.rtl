@@ -1,0 +1,16 @@
+use("../../stdlib/root.rtl") aka std;
+use("calc.rtl") aka calc;
+
+fn main() gives void {
+    std.emit("3 + 4 = ");
+    std.emit(calc.add(3, 4));
+    std.line();
+
+    std.emit("3 * 4 = ");
+    std.emit(calc.multiply(3, 4));
+    std.line();
+
+    std.emit("5 squared = ");
+    std.emit(calc.square(5));
+    std.line();
+}
