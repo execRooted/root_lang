@@ -111,7 +111,6 @@ rtlc <source.rtl> [options]
 | `--emit-c`      | write the generated C only, do not compile         |
 | `--keep`        | keep the generated `.gen.c` next to the executable |
 | `--cc <program>`| C compiler to use (default `cc`)                   |
-| `--version`     | print the version and exit                         |
 | `-h`, `--help`  | show usage                                         |
 
 Examples:
@@ -190,7 +189,7 @@ int x = 5;   # trailing comment
 | `float`   | 32-bit floating point      | `float`            |
 | `double`  | 64-bit floating point      | `double`           |
 | `char`    | single character           | `char`             |
-| `text`    | string of characters       | `char*`            |
+| `str`    | string of characters       | `char*`            |
 | `bool`    | boolean (`yes` / `no`)     | `bool`             |
 | `void`    | no value (function result) | `void`             |
 | `any`     | opaque reference, castable | `void*`            |
@@ -210,13 +209,13 @@ reference to an int, `int[]*` a reference to an array.
 3.14f         # float  (explicit)
 3.14159d      # double (the 'd' suffix)
 'a'           # char
-"hello"       # text
+"hello"       # str
 yes           # bool true
 no            # bool false
 nil           # null reference
 ```
 
-Escape sequences inside `text` and `char` literals: `\n`, `\t`, `\r`, `\0`,
+Escape sequences inside `str` and `char` literals: `\n`, `\t`, `\r`, `\0`,
 `\\`, `\"`, `\'`.
 
 ---
@@ -230,7 +229,7 @@ int x = 5;
 float f = 3.14;
 double d = 3.14159d;
 char c = 'a';
-text s = "hello world";
+str s = "hello world";
 bool b = yes;
 ```
 
@@ -239,7 +238,7 @@ Without an initializer, a variable takes its zero value (`0`, `0.0`, `""`,
 
 ```rtl
 int counter;      # 0
-text name;        # ""
+str name;        # ""
 ```
 
 The keyword `let` is optional and reads nicely. `const` marks a binding as
@@ -286,7 +285,7 @@ a <  b    a >  b
 a <= b    a >= b
 ```
 
-For `text`, `==` and `!=` compare **contents**, not addresses.
+For `str`, `==` and `!=` compare **contents**, not addresses.
 
 ### Logical
 
@@ -313,7 +312,7 @@ int y = x to int;        # 3
 int big = 300;
 int8 small = big to int8;
 
-text digits = "42";
+str digits = "42";
 int n = digits to int;   # parses the number -> 42
 ```
 
@@ -388,7 +387,7 @@ int result = add(3, 4);
 Functions that produce no value return `void`:
 
 ```rtl
-fn greet(text name) return void {
+fn greet(str name) return void {
     std.out("Hi ");
     std.out(name);
     std.line();
@@ -415,7 +414,7 @@ An array literal is written with braces. Arrays carry their own length.
 ```rtl
 int[] nums = {1, 2, 3, 4, 5};
 float[] reals = {1.1, 2.2, 3.3};
-text[] words = {"hello", "world"};
+str[] words = {"hello", "world"};
 ```
 
 Indexing and assignment:
@@ -450,17 +449,17 @@ int s = total(nums, nums.length);
 ## Text (strings)
 
 ```rtl
-text s = "Hello world";
-text empty = "";
+str s = "Hello world";
+str empty = "";
 ```
 
 Concatenate with `+` or `std.join`:
 
 ```rtl
-text a = "Hello";
-text b = " World";
-text c = a + b;             # "Hello World"
-text d = std.join(a, b);    # same result
+str a = "Hello";
+str b = " World";
+str c = a + b;             # "Hello World"
+str d = std.join(a, b);    # same result
 ```
 
 Length via `.length`, and content comparison with `==`:
@@ -513,7 +512,7 @@ Declare a struct with named, typed fields:
 struct person = {
     int age;
     float height;
-    text name;
+    str name;
 }
 ```
 
@@ -635,7 +634,7 @@ use("stdlib/root.rtl") as std;
 
 | Function            | Description                                    |
 | ------------------- | ---------------------------------------------- |
-| `std.out(value)`    | print any scalar value (int, real, text, bool) |
+| `std.out(value)`    | print any scalar value (int, real, str, bool) |
 | `std.out_char(c)`   | print a single character                       |
 | `std.line()`        | print a newline                                |
 
@@ -645,7 +644,7 @@ use("stdlib/root.rtl") as std;
 | ----------------- | -------------------------------- |
 | `std.ask_int()`   | read an `int` from stdin         |
 | `std.ask_real()`  | read a `double` from stdin       |
-| `std.ask_line()`  | read a line of `text` from stdin |
+| `std.ask_line()`  | read a line of `str` from stdin |
 
 ### Math
 
@@ -660,9 +659,9 @@ use("stdlib/root.rtl") as std;
 | Function                        | Description               |
 | ------------------------------- | ------------------------- |
 | `std.join(a, b)`                | concatenate two texts     |
-| `std.text_size(s)`              | length of a text          |
-| `std.text_same(a, b)`           | content equality (`bool`) |
-| `std.text_slice(s, start, end)` | substring `[start, end)`  |
+| `std.str_size(s)`              | length of a text          |
+| `std.str_same(a, b)`           | content equality (`bool`) |
+| `std.str_slice(s, start, end)` | substring `[start, end)`  |
 
 ### Memory
 
@@ -680,7 +679,7 @@ use("stdlib/root.rtl") as std;
 | `std.file_open(path, mode)`    | open a file, returns an `any` handle |
 | `std.file_close(handle)`       | close a file                         |
 | `std.file_write(handle, text)` | write text to a file                 |
-| `std.file_read_line(handle)`   | read one line as `text`              |
+| `std.file_read_line(handle)`   | read one line as `str`              |
 | `std.file_ended(handle)`       | `1` if at end of file, else `0`      |
 | `std.file_remove(path)`        | delete a file                        |
 
@@ -701,7 +700,7 @@ fn main() return void {
     std.file_close(f);
 
     any r = std.file_open("notes.txt", "r");
-    text line = std.file_read_line(r);
+    str line = std.file_read_line(r);
     std.out(line);
     std.file_close(r);
 
@@ -719,9 +718,9 @@ An informal overview of the syntax.
 program        := decl*
 decl           := import | function | struct | enum
 
-import         := "use" "(" text ")" "as" ident ";"
+import         := "use" "(" string ")" "as" ident ";"
 function       := "fn" ident "(" params? ")" "return" type
-                  ( "native" text "{" "}" | block )
+                  ( "native" string "{" "}" | block )
 params         := param ("," param)*
 param          := type ident
 struct         := "struct" ident "=" "{" field* "}"
@@ -732,7 +731,7 @@ enumerator     := ident ( "=" int )?
 type           := base ("[]" | "*")*
 base           := "int" | "int8" | "int16" | "int64"
                 | "uint" | "uint8" | "uint16" | "uint64"
-                | "float" | "double" | "char" | "text"
+                | "float" | "double" | "char" | "str"
                 | "bool" | "void" | "any" | ident
 
 block          := "{" statement* "}"
@@ -755,7 +754,7 @@ factor         := cast (("*" | "/" | "%") cast)*
 cast           := unary ("to" type)*
 unary          := ("-" | "!") unary | postfix
 postfix        := primary ( "." ident ("(" ")")? | "[" expr "]" )*
-primary        := int | float | double | text | char | bool | "nil"
+primary        := int | float | double | string | char | bool | "nil"
                 | "sizeof" "(" type ")"
                 | ident | ident "(" args? ")" | ident "." ident "(" args? ")"
                 | "(" expr ")" | "{" (expr ("," expr)*)? "}"

@@ -4,27 +4,27 @@ fn out_char(char c) return void native "rt_out_char" {}
 
 fn ask_int() return int native "rt_in_int" {}
 fn ask_real() return double native "rt_in_real" {}
-fn ask_line() return text native "rt_in_line" {}
+fn ask_line() return str native "rt_in_line" {}
 
 fn root(double x) return double native "rt_root" {}
 fn power(double base, double exponent) return double native "rt_power" {}
 fn abs(int value) return int native "rt_abs_int" {}
 
-fn join(text a, text b) return text native "rt_text_concat" {}
-fn text_size(text s) return int native "rt_text_len" {}
-fn text_same(text a, text b) return bool native "rt_text_equal" {}
-fn text_slice(text s, int start, int end) return text native "rt_text_slice" {}
+fn join(str a, str b) return str native "rt_text_concat" {}
+fn str_size(str s) return int native "rt_text_len" {}
+fn str_same(str a, str b) return bool native "rt_text_equal" {}
+fn str_slice(str s, int start, int end) return str native "rt_text_slice" {}
 
 fn reserve(int size) return any native "rt_reserve" {}
 fn release(any ptr) return void native "rt_release" {}
 fn copy(any dst, any src, int size) return any native "rt_copy" {}
 fn regrow(any ptr, int size) return any native "rt_regrow" {}
 
-fn file_open(text path, text mode) return any native "rt_file_open" {}
+fn file_open(str path, str mode) return any native "rt_file_open" {}
 fn file_close(any handle) return void native "rt_file_close" {}
-fn file_write(any handle, text data) return void native "rt_file_write" {}
-fn file_read_line(any handle) return text native "rt_file_read_line" {}
+fn file_write(any handle, str data) return void native "rt_file_write" {}
+fn file_read_line(any handle) return str native "rt_file_read_line" {}
 fn file_ended(any handle) return int native "rt_file_ended" {}
-fn file_remove(text path) return void native "rt_file_remove" {}
+fn file_remove(str path) return void native "rt_file_remove" {}
 
 fn halt(int code) return void native "rt_halt" {}

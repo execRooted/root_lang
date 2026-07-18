@@ -7,7 +7,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define ROOTLANG_VERSION "1.0.0"
 #define ROOTLANG_SRC_EXT ".rtl"
 
 typedef struct {

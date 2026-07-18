@@ -18,7 +18,7 @@ static const KeywordEntry KEYWORDS[] = {
     {"float",     TK_KW_FLOAT},
     {"double",    TK_KW_DOUBLE},
     {"char",      TK_KW_CHAR},
-    {"text",      TK_KW_TEXT},
+    {"str",       TK_KW_TEXT},
     {"bool",      TK_KW_BOOL},
     {"void",      TK_KW_VOID},
     {"any",       TK_KW_ANY},
@@ -60,7 +60,7 @@ const char *rl_token_name(TokKind kind) {
     case TK_INT_LIT:    return "integer";
     case TK_FLOAT_LIT:  return "float";
     case TK_DOUBLE_LIT: return "double";
-    case TK_STRING_LIT: return "text literal";
+    case TK_STRING_LIT: return "string literal";
     case TK_CHAR_LIT:   return "char literal";
     case TK_BOOL_LIT:   return "bool";
     case TK_IDENT:      return "identifier";
@@ -182,7 +182,7 @@ static void lex_string(Lexer *lx) {
         }
     }
     if (peek(lx) != '"')
-        rl_fatal(lx->file, line, col, "unterminated text literal");
+        rl_fatal(lx->file, line, col, "unterminated string literal");
     advance(lx);
     emit(lx, TK_STRING_LIT, buf.data, buf.len, line, col);
     rope_free(&buf);

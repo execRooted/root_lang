@@ -34,14 +34,12 @@ static void run_or_die(const char *cmd) {
 
 static void usage(const char *prog) {
     fprintf(stderr,
-            "root_lang %s\n"
             "usage: %s <source%s> [options]\n"
             "  -o <file>      name the output executable\n"
             "  --emit-c       write the generated C only, do not compile\n"
             "  --keep         keep the generated C next to the output\n"
-            "  --cc <program> C compiler to use (default: cc)\n"
-            "  --version      print version and exit\n",
-            ROOTLANG_VERSION, prog, ROOTLANG_SRC_EXT);
+            "  --cc <program> C compiler to use (default: cc)\n",
+            prog, ROOTLANG_SRC_EXT);
 }
 
 int main(int argc, char **argv) {
@@ -60,9 +58,6 @@ int main(int argc, char **argv) {
             opt.keep_intermediate = true;
         } else if (strcmp(a, "--cc") == 0 && i + 1 < argc) {
             opt.cc = argv[++i];
-        } else if (strcmp(a, "--version") == 0) {
-            printf("root_lang %s\n", ROOTLANG_VERSION);
-            return 0;
         } else if (strcmp(a, "-h") == 0 || strcmp(a, "--help") == 0) {
             usage(argv[0]);
             return 0;
