@@ -1,5 +1,9 @@
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE 1
+
 #include "common.h"
 #include <stdarg.h>
+#include <unistd.h>
 
 void *rl_alloc(size_t bytes) {
     void *p = calloc(1, bytes ? bytes : 1);
@@ -152,4 +156,75 @@ char *rl_strip_ext(const char *path) {
     if (!dot || (slash && dot < slash))
         return rl_strdup(path);
     return rl_strndup(path, (size_t)(dot - path));
+}
+
+/*
+ * Locate the root_lang "home" directory: the directory that contains the
+ * `runtime/` and `stdlib/` folders. The search is robust so the compiler works
+ * from a build tree, a system install, or a relocated install, on any machine
+ * and in any shell, even when ROOTLANG_HOME is not set.
+ *
+ * Search order:
+ *   1. $ROOTLANG_HOME, if set.
+ *   2. Relative to the compiler executable:
+ *        <bindir>          (build tree: runtime/ sits beside bin/../)
+ *        <bindir>/..       (build tree layout)
+ *        <bindir>/../lib/root_lang   (install: bin in prefix/bin)
+ *   3. Well-known install prefixes.
+ *
+ * A candidate is accepted only if it actually contains a `runtime` directory.
+ * The returned string is owned by the caller. Falls back to the well-known
+ * default even if nothing is found so callers always get a usable path.
+ */
+static bool dir_has_runtime(const char *home) {
+    char *probe = rl_path_join(home, "runtime");
+    bool ok = access(probe, F_OK) == 0;
+    free(probe);
+    return ok;
+}
+
+char *rl_find_home(void) {
+    const char *env = getenv("ROOTLANG_HOME");
+    if (env && *env)
+        return rl_strdup(env);
+
+    char selfbuf[4096];
+    ssize_t n = readlink("/proc/self/exe", selfbuf, sizeof(selfbuf) - 1);
+    if (n > 0) {
+        selfbuf[n] = '\0';
+        char *bindir = rl_dirname(selfbuf);
+
+        /* Candidate A: files sit beside the binary's directory. */
+        if (dir_has_runtime(bindir))
+            return bindir;
+
+        /* Candidate B: parent of bindir (e.g. build tree root). */
+        char *parent = rl_dirname(bindir);
+        if (dir_has_runtime(parent)) {
+            free(bindir);
+            return parent;
+        }
+
+        /* Candidate C: <prefix>/lib/root_lang when binary is <prefix>/bin. */
+        char *lib = rl_path_join(parent, "lib/root_lang");
+        free(parent);
+        free(bindir);
+        if (dir_has_runtime(lib))
+            return lib;
+        free(lib);
+    }
+
+    /* Well-known install locations. */
+    static const char *fallbacks[] = {
+        "/usr/local/lib/root_lang",
+        "/usr/lib/root_lang",
+        "/opt/root_lang",
+        NULL,
+    };
+    for (int i = 0; fallbacks[i]; i++)
+        if (dir_has_runtime(fallbacks[i]))
+            return rl_strdup(fallbacks[i]);
+
+    /* Last resort: the canonical install path, even if unverified. */
+    return rl_strdup("/usr/local/lib/root_lang");
 }

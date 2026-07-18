@@ -17,35 +17,11 @@ typedef struct {
 } Options;
 
 static char *find_runtime_dir(const char *argv0) {
-    const char *env = getenv("ROOTLANG_HOME");
-    if (env && *env)
-        return rl_path_join(env, "runtime");
-
-    char selfbuf[4096];
-    ssize_t n = readlink("/proc/self/exe", selfbuf, sizeof(selfbuf) - 1);
-    char *exe = NULL;
-    if (n > 0) {
-        selfbuf[n] = '\0';
-        exe = rl_strdup(selfbuf);
-    } else {
-        exe = rl_strdup(argv0);
-    }
-
-    char *bindir = rl_dirname(exe);
-    free(exe);
-
-    char *cand = rl_path_join(bindir, "runtime");
-    if (access(cand, F_OK) == 0) {
-        free(bindir);
-        return cand;
-    }
-    free(cand);
-
-    char *parent = rl_dirname(bindir);
-    free(bindir);
-    cand = rl_path_join(parent, "runtime");
-    free(parent);
-    return cand;
+    (void)argv0;
+    char *home = rl_find_home();
+    char *rt = rl_path_join(home, "runtime");
+    free(home);
+    return rt;
 }
 
 static void run_or_die(const char *cmd) {

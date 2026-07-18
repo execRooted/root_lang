@@ -1,6 +1,7 @@
 #include "resolver.h"
 #include "lexer.h"
 #include "parser.h"
+#include <unistd.h>
 
 typedef struct {
     char  **paths;
@@ -40,6 +41,20 @@ static void load_file(const char *path, const char *alias, LoadedSet *loaded,
         Decl d = prog.items[i];
         if (d.kind == DECL_IMPORT) {
             char *child = rl_path_join(dir, d.as.import.path);
+            if (access(child, F_OK) != 0) {
+                /* Not found beside the source: try the install home so that
+                   use("stdlib/root.rtl") resolves from any directory, on any
+                   machine, with or without ROOTLANG_HOME set. */
+                char *home = rl_find_home();
+                char *alt = rl_path_join(home, d.as.import.path);
+                free(home);
+                if (access(alt, F_OK) == 0) {
+                    free(child);
+                    child = alt;
+                } else {
+                    free(alt);
+                }
+            }
             load_file(child, d.as.import.alias, loaded, out);
             free(child);
             continue;

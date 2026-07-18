@@ -529,7 +529,7 @@ static Decl parse_function(Parser *p) {
         } while (match(p, TK_COMMA));
     }
     expect(p, TK_RPAREN, "')'");
-    expect(p, TK_KW_GIVES, "'gives'");
+    expect(p, TK_KW_GIVE, "'return'");
     d.as.func.return_type = parse_type(p);
 
     if (match(p, TK_KW_NATIVE)) {
@@ -550,7 +550,7 @@ static Decl parse_function(Parser *p) {
 
 static Decl parse_blueprint(Parser *p) {
     advance(p);
-    Token *name = expect(p, TK_IDENT, "blueprint name");
+    Token *name = expect(p, TK_IDENT, "struct name");
     Decl d = {0};
     d.kind = DECL_BLUEPRINT;
     d.as.blueprint.name = rl_strdup(name->lexeme);
@@ -577,7 +577,7 @@ static Decl parse_blueprint(Parser *p) {
 
 static Decl parse_choices(Parser *p) {
     advance(p);
-    Token *name = expect(p, TK_IDENT, "choices name");
+    Token *name = expect(p, TK_IDENT, "enum name");
     Decl d = {0};
     d.kind = DECL_CHOICES;
     d.as.choices.name = rl_strdup(name->lexeme);
@@ -618,7 +618,7 @@ static Decl parse_import(Parser *p) {
     expect(p, TK_LPAREN, "'('");
     Token *path = expect(p, TK_STRING_LIT, "import path");
     expect(p, TK_RPAREN, "')'");
-    expect(p, TK_KW_AKA, "'aka'");
+    expect(p, TK_KW_AKA, "'as'");
     Token *alias = expect(p, TK_IDENT, "module alias");
     expect(p, TK_SEMI, "';'");
     Decl d = {0};

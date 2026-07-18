@@ -40,4 +40,6 @@ char *rl_dirname(const char *path);
 
 char *rl_strip_ext(const char *path);
 
+char *rl_find_home(void);
+
 #endif
