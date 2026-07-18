@@ -36,10 +36,6 @@ static Token *expect(Parser *p, TokKind k, const char *what) {
     return NULL;
 }
 
-/* ------------------------------------------------------------------ */
-/* Types                                                              */
-/* ------------------------------------------------------------------ */
-
 static bool is_base_type_token(TokKind k) {
     switch (k) {
     case TK_KW_INT: case TK_KW_INT8: case TK_KW_INT16: case TK_KW_INT64:
@@ -73,11 +69,6 @@ static Type *base_type_from(TokKind k) {
     }
 }
 
-/*
- * A type is a base type or blueprint name, optionally followed by any number
- * of `[]` (span) or `*` (ref) suffixes. `int[]` is a span of ints, `int*` a
- * reference to an int.
- */
 static Type *parse_type(Parser *p) {
     Type *t = NULL;
     Token *tok = peek(p);
@@ -104,10 +95,6 @@ static Type *parse_type(Parser *p) {
     }
     return t;
 }
-
-/* ------------------------------------------------------------------ */
-/* Expressions (precedence climbing)                                  */
-/* ------------------------------------------------------------------ */
 
 static Expr *parse_expr(Parser *p);
 
@@ -206,10 +193,10 @@ static Expr *parse_primary(Parser *p) {
     }
     case TK_IDENT: {
         advance(p);
-        /* module call: alias.func(...) */
+
         if (check(p, TK_DOT) && p->toks[p->pos + 1].kind == TK_IDENT &&
             p->toks[p->pos + 2].kind == TK_LPAREN) {
-            advance(p); /* dot */
+            advance(p);
             Token *fn = advance(p);
             Expr *e = expr_new(EX_MODULE_CALL, t->line, t->col);
             e->module = rl_strdup(t->lexeme);
@@ -217,7 +204,7 @@ static Expr *parse_primary(Parser *p) {
             e->args = parse_args(p);
             return e;
         }
-        /* plain call: name(...) */
+
         if (check(p, TK_LPAREN)) {
             Expr *e = expr_new(EX_CALL, t->line, t->col);
             e->callee = rl_strdup(t->lexeme);
@@ -235,7 +222,6 @@ static Expr *parse_primary(Parser *p) {
     }
 }
 
-/* postfix: field access, indexing */
 static Expr *parse_postfix(Parser *p) {
     Expr *e = parse_primary(p);
     for (;;) {
@@ -244,7 +230,7 @@ static Expr *parse_postfix(Parser *p) {
             Expr *fe = expr_new(EX_FIELD, name->line, name->col);
             fe->base = e;
             fe->field = rl_strdup(name->lexeme);
-            /* Allow method-style `.address()` / `.length()` empty calls. */
+
             if (check(p, TK_LPAREN)) {
                 advance(p);
                 expect(p, TK_RPAREN, "')'");
@@ -275,7 +261,6 @@ static Expr *parse_unary(Parser *p) {
     return parse_postfix(p);
 }
 
-/* cast: unary `to` Type */
 static Expr *parse_cast(Parser *p) {
     Expr *e = parse_unary(p);
     while (check(p, TK_KW_TO)) {
@@ -353,7 +338,6 @@ static Expr *parse_logic_or(Parser *p) {
     return e;
 }
 
-/* Assignment is right associative and lowest precedence. */
 static Expr *parse_expr(Parser *p) {
     Expr *e = parse_logic_or(p);
     OpKind op;
@@ -375,10 +359,6 @@ static Expr *parse_expr(Parser *p) {
     return a;
 }
 
-/* ------------------------------------------------------------------ */
-/* Statements                                                         */
-/* ------------------------------------------------------------------ */
-
 static StmtList parse_block(Parser *p);
 static Stmt *parse_stmt(Parser *p);
 
@@ -391,25 +371,19 @@ static Stmt *parse_var_decl(Parser *p) {
     s->decl_name = rl_strdup(name->lexeme);
     if (match(p, TK_ASSIGN))
         s->decl_init = parse_expr(p);
-    /* Optional `const` modifier after the initializer. */
+
     if (match(p, TK_KW_CONST))
         s->decl_const = true;
     return s;
 }
 
-/*
- * Distinguish a variable declaration (`Type name ...`) from an expression
- * statement. A declaration begins with a base type keyword, or with an
- * identifier that is immediately followed by another identifier (or by a
- * span/ref suffix and then an identifier).
- */
 static bool starts_var_decl(Parser *p) {
     if (is_base_type_token(peek(p)->kind))
         return true;
     if (!check(p, TK_IDENT))
         return false;
     size_t i = p->pos + 1;
-    /* skip [] and * suffixes */
+
     while (p->toks[i].kind == TK_LBRACKET || p->toks[i].kind == TK_STAR) {
         if (p->toks[i].kind == TK_LBRACKET) {
             if (p->toks[i + 1].kind != TK_RBRACKET)
@@ -423,7 +397,7 @@ static bool starts_var_decl(Parser *p) {
 }
 
 static Stmt *parse_when(Parser *p) {
-    Token *kw = advance(p); /* if */
+    Token *kw = advance(p);
     expect(p, TK_LPAREN, "'('");
     Expr *cond = parse_expr(p);
     expect(p, TK_RPAREN, "')'");
@@ -432,15 +406,14 @@ static Stmt *parse_when(Parser *p) {
     s->then_body = parse_block(p);
 
     if (check(p, TK_KW_ORELSE)) {
-        /* `else if (...)` chains into a nested conditional; a bare `else`
-           takes a block. */
+
         if (p->toks[p->pos + 1].kind == TK_KW_WHEN) {
-            advance(p); /* consume 'else' */
+            advance(p);
             Stmt *chained = parse_when(p);
             stmt_list_push(&s->else_body, chained);
             s->has_else = true;
         } else {
-            advance(p); /* consume 'else' */
+            advance(p);
             s->else_body = parse_block(p);
             s->has_else = true;
         }
@@ -473,7 +446,7 @@ static Stmt *parse_stmt(Parser *p) {
         advance(p);
         expect(p, TK_LPAREN, "'('");
         Stmt *s = stmt_new(ST_WALK, t->line, t->col);
-        /* init , condition , step  (comma separated, matching the spec) */
+
         s->walk_init = parse_var_decl(p);
         expect(p, TK_COMMA, "','");
         s->cond = parse_expr(p);
@@ -516,7 +489,6 @@ static Stmt *parse_stmt(Parser *p) {
         return s;
     }
 
-    /* expression statement */
     Stmt *s = stmt_new(ST_EXPR, t->line, t->col);
     s->expr = parse_expr(p);
     expect(p, TK_SEMI, "';'");
@@ -532,12 +504,8 @@ static StmtList parse_block(Parser *p) {
     return list;
 }
 
-/* ------------------------------------------------------------------ */
-/* Top level declarations                                             */
-/* ------------------------------------------------------------------ */
-
 static Decl parse_function(Parser *p) {
-    advance(p); /* fn */
+    advance(p);
     Token *name = expect(p, TK_IDENT, "function name");
     Decl d = {0};
     d.kind = DECL_FUNC;
@@ -568,7 +536,7 @@ static Decl parse_function(Parser *p) {
         d.as.func.is_native = true;
         Token *sym = expect(p, TK_STRING_LIT, "native symbol name");
         d.as.func.native_name = rl_strdup(sym->lexeme);
-        /* Native declarations may carry an empty body. */
+
         if (check(p, TK_LBRACE)) {
             parse_block(p);
         }
@@ -581,7 +549,7 @@ static Decl parse_function(Parser *p) {
 }
 
 static Decl parse_blueprint(Parser *p) {
-    advance(p); /* blueprint */
+    advance(p);
     Token *name = expect(p, TK_IDENT, "blueprint name");
     Decl d = {0};
     d.kind = DECL_BLUEPRINT;
@@ -608,7 +576,7 @@ static Decl parse_blueprint(Parser *p) {
 }
 
 static Decl parse_choices(Parser *p) {
-    advance(p); /* choices */
+    advance(p);
     Token *name = expect(p, TK_IDENT, "choices name");
     Decl d = {0};
     d.kind = DECL_CHOICES;
@@ -646,7 +614,7 @@ static Decl parse_choices(Parser *p) {
 }
 
 static Decl parse_import(Parser *p) {
-    advance(p); /* use */
+    advance(p);
     expect(p, TK_LPAREN, "'('");
     Token *path = expect(p, TK_STRING_LIT, "import path");
     expect(p, TK_RPAREN, "')'");

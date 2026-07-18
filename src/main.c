@@ -1,13 +1,3 @@
-/*
- * rootc - the root_lang compiler driver.
- *
- * Usage:
- *   rootc <source.rtl> [-o output] [--emit-c] [--keep] [--cc <compiler>]
- *
- * The driver resolves imports, lowers the program to C, writes the generated
- * translation unit next to the bundled runtime and invokes the host C compiler
- * to produce a native executable.
- */
 #define _POSIX_C_SOURCE 200809L
 #define _DEFAULT_SOURCE 1
 
@@ -26,13 +16,11 @@ typedef struct {
     bool        keep_intermediate;
 } Options;
 
-/* Best-effort discovery of the installation root so we can find rootrt.*. */
 static char *find_runtime_dir(const char *argv0) {
     const char *env = getenv("ROOTLANG_HOME");
     if (env && *env)
         return rl_path_join(env, "runtime");
 
-    /* Derive from the executable path: <root>/bin/rootc -> <root>/runtime */
     char selfbuf[4096];
     ssize_t n = readlink("/proc/self/exe", selfbuf, sizeof(selfbuf) - 1);
     char *exe = NULL;
@@ -46,7 +34,6 @@ static char *find_runtime_dir(const char *argv0) {
     char *bindir = rl_dirname(exe);
     free(exe);
 
-    /* Candidate 1: sibling 'runtime' directory (build tree layout). */
     char *cand = rl_path_join(bindir, "runtime");
     if (access(cand, F_OK) == 0) {
         free(bindir);
@@ -54,7 +41,6 @@ static char *find_runtime_dir(const char *argv0) {
     }
     free(cand);
 
-    /* Candidate 2: parent of bin/ (install layout). */
     char *parent = rl_dirname(bindir);
     free(bindir);
     cand = rl_path_join(parent, "runtime");
@@ -117,15 +103,12 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    /* Default output name: source path with the extension stripped. */
     if (!opt.output)
         opt.output = rl_strip_ext(opt.input);
 
-    /* Front + middle + back end. */
     Program program = rl_resolve_program(opt.input);
     char *c_source = rl_generate_c(&program);
 
-    /* Write the generated C beside the output executable. */
     char *c_path = rl_alloc(strlen(opt.output) + 16);
     sprintf(c_path, "%s.gen.c", opt.output);
     FILE *cf = fopen(c_path, "wb");
@@ -142,7 +125,6 @@ int main(int argc, char **argv) {
     char *runtime_dir = find_runtime_dir(argv[0]);
     char *rt_c = rl_path_join(runtime_dir, "rootrt.c");
 
-    /* Build the compile command. */
     Rope cmd;
     rope_init(&cmd);
     rope_printf(&cmd, "%s -std=c11 -O2 -I\"%s\" \"%s\" \"%s\" -o \"%s\" -lm",

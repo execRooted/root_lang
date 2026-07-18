@@ -2,7 +2,6 @@
 #include "lexer.h"
 #include "parser.h"
 
-/* Track already loaded files to avoid double inclusion / cycles. */
 typedef struct {
     char  **paths;
     size_t  count;
@@ -24,11 +23,6 @@ static void loaded_add(LoadedSet *set, const char *path) {
     set->paths[set->count++] = rl_strdup(path);
 }
 
-/*
- * Parse one file and append its declarations to `out`, tagging functions with
- * `alias` when supplied. Imports found inside the file are recursively loaded
- * relative to that file's directory.
- */
 static void load_file(const char *path, const char *alias, LoadedSet *loaded,
                       Program *out) {
     if (loaded_contains(loaded, path))
@@ -56,7 +50,7 @@ static void load_file(const char *path, const char *alias, LoadedSet *loaded,
     }
 
     free(dir);
-    /* Deliberately keep token lexemes alive: AST strings were copied out. */
+
     rl_tokens_free(&toks);
     free(source);
     free(prog.items);

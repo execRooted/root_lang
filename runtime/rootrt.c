@@ -1,13 +1,8 @@
-/*
- * root_lang runtime support library implementation.
- */
 #include "rootrt.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
-/* ---- Text --------------------------------------------------------- */
 
 size_t rt_text_len(const char *s) { return s ? strlen(s) : 0; }
 
@@ -56,12 +51,6 @@ double rt_text_to_real(const char *s) {
     return s ? strtod(s, NULL) : 0.0;
 }
 
-/* ---- Spans -------------------------------------------------------- */
-/*
- * A span is stored as a single allocation. A size_t length header precedes the
- * element region; the pointer handed back to generated code points at the first
- * element, so ordinary indexing works unchanged.
- */
 void *rt_span_make(size_t elem_size, size_t count, const void *src) {
     size_t header = sizeof(size_t);
     unsigned char *block = malloc(header + elem_size * (count ? count : 1));
@@ -81,8 +70,6 @@ int32_t rt_span_len(const void *span) {
     return (int32_t)(*(const size_t *)block);
 }
 
-/* ---- Console output ----------------------------------------------- */
-
 void rt_out_int(int64_t v) { printf("%lld", (long long)v); }
 void rt_out_uint(uint64_t v) { printf("%llu", (unsigned long long)v); }
 void rt_out_real(double v) { printf("%g", v); }
@@ -90,8 +77,6 @@ void rt_out_text(const char *s) { fputs(s ? s : "", stdout); }
 void rt_out_char(char c) { putchar(c); }
 void rt_out_bool(bool b) { fputs(b ? "yes" : "no", stdout); }
 void rt_out_newline(void) { putchar('\n'); }
-
-/* ---- Console input ------------------------------------------------ */
 
 int32_t rt_in_int(void) {
     int32_t v = 0;
@@ -117,17 +102,11 @@ char *rt_in_line(void) {
     return buf;
 }
 
-/* ---- Math --------------------------------------------------------- */
-
 double rt_root(double x) { return sqrt(x); }
 double rt_power(double base, double exp) { return pow(base, exp); }
 int64_t rt_abs_int(int64_t v) { return v < 0 ? -v : v; }
 
-/* ---- Program control ---------------------------------------------- */
-
 void rt_halt(int32_t code) { exit(code); }
-
-/* ---- Dynamic memory ----------------------------------------------- */
 
 void *rt_reserve(int32_t size) { return malloc((size_t)size); }
 void  rt_release(void *ptr) { free(ptr); }
@@ -135,8 +114,6 @@ void *rt_copy(void *dst, void *src, int32_t size) {
     return memcpy(dst, src, (size_t)size);
 }
 void *rt_regrow(void *ptr, int32_t size) { return realloc(ptr, (size_t)size); }
-
-/* ---- File handling ------------------------------------------------ */
 
 void *rt_file_open(const char *path, const char *mode) {
     return fopen(path, mode);

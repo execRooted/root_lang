@@ -3,10 +3,6 @@
 
 #include "common.h"
 
-/* ------------------------------------------------------------------ */
-/* Types                                                              */
-/* ------------------------------------------------------------------ */
-
 typedef enum {
     TY_VOID,
     TY_INT,
@@ -20,18 +16,18 @@ typedef enum {
     TY_FLOAT,
     TY_DOUBLE,
     TY_CHAR,
-    TY_TEXT,    /* string */
+    TY_TEXT,
     TY_BOOL,
-    TY_ANY,     /* opaque pointer, castable */
-    TY_SPAN,    /* array: element type in `inner` */
-    TY_REF,     /* pointer: pointee type in `inner` */
-    TY_NAMED    /* blueprint (struct) referenced by name */
+    TY_ANY,
+    TY_SPAN,
+    TY_REF,
+    TY_NAMED
 } TypeKind;
 
 typedef struct Type {
     TypeKind      kind;
-    struct Type  *inner; /* element/pointee type for SPAN/REF */
-    char         *name;  /* for TY_NAMED */
+    struct Type  *inner;
+    char         *name;
 } Type;
 
 Type *type_new(TypeKind kind);
@@ -40,10 +36,6 @@ Type *type_ref(Type *inner);
 Type *type_named(const char *name);
 Type *type_clone(const Type *t);
 bool  type_equal(const Type *a, const Type *b);
-
-/* ------------------------------------------------------------------ */
-/* Expressions                                                        */
-/* ------------------------------------------------------------------ */
 
 typedef enum {
     EX_INT,
@@ -56,14 +48,14 @@ typedef enum {
     EX_IDENT,
     EX_BINARY,
     EX_UNARY,
-    EX_ASSIGN,      /* target op= value / = value */
-    EX_CALL,        /* callee(args...) */
-    EX_MODULE_CALL, /* alias.func(args...) */
-    EX_INDEX,       /* base[index] */
-    EX_FIELD,       /* base.field  (also .address/.value/.length) */
-    EX_ARRAY_LIT,   /* {a, b, c} */
-    EX_CAST,        /* value to Type */
-    EX_SIZEOF       /* sizeof(Type) */
+    EX_ASSIGN,
+    EX_CALL,
+    EX_MODULE_CALL,
+    EX_INDEX,
+    EX_FIELD,
+    EX_ARRAY_LIT,
+    EX_CAST,
+    EX_SIZEOF
 } ExprKind;
 
 typedef enum {
@@ -86,53 +78,43 @@ struct Expr {
     ExprKind kind;
     int      line;
     int      col;
-    Type    *inferred; /* filled during semantic analysis */
+    Type    *inferred;
 
-    /* literals */
     long long ival;
     double    fval;
-    char     *sval;   /* string literal text / identifier name */
+    char     *sval;
     char      cval;
     bool      bval;
 
-    /* binary / unary / assign */
     OpKind op;
     Expr  *lhs;
     Expr  *rhs;
 
-    /* call / module call */
-    char     *callee;   /* function name */
-    char     *module;   /* alias for module calls */
+    char     *callee;
+    char     *module;
     ExprList  args;
 
-    /* index / field */
     Expr *base;
     Expr *index;
     char *field;
 
-    /* array literal */
     ExprList elems;
 
-    /* cast / sizeof */
     Type *cast_type;
 };
 
 Expr *expr_new(ExprKind kind, int line, int col);
 
-/* ------------------------------------------------------------------ */
-/* Statements                                                         */
-/* ------------------------------------------------------------------ */
-
 typedef enum {
     ST_VAR_DECL,
     ST_EXPR,
-    ST_GIVE,      /* return */
-    ST_WHEN,      /* if / elsewhen / orelse */
-    ST_LOOP,      /* while */
-    ST_WALK,      /* for */
+    ST_GIVE,
+    ST_WHEN,
+    ST_LOOP,
+    ST_WALK,
     ST_BLOCK,
-    ST_STOP,      /* break */
-    ST_SKIP       /* continue */
+    ST_STOP,
+    ST_SKIP
 } StmtKind;
 
 typedef struct {
@@ -148,32 +130,24 @@ struct Stmt {
     int      line;
     int      col;
 
-    /* var decl */
     Type *decl_type;
     char *decl_name;
     Expr *decl_init;
     bool  decl_const;
 
-    /* expression statement / return value */
     Expr *expr;
 
-    /* when: condition + then + else chain */
     Expr    *cond;
     StmtList then_body;
-    StmtList else_body;   /* may be empty */
+    StmtList else_body;
     bool     has_else;
 
-    /* loop / walk */
-    Stmt    *walk_init;   /* var decl */
-    Expr    *walk_step;   /* assignment expr */
+    Stmt    *walk_init;
+    Expr    *walk_step;
     StmtList body;
 };
 
 Stmt *stmt_new(StmtKind kind, int line, int col);
-
-/* ------------------------------------------------------------------ */
-/* Top level declarations                                             */
-/* ------------------------------------------------------------------ */
 
 typedef struct {
     Type *type;
@@ -186,8 +160,8 @@ typedef struct {
     Param   *params;
     size_t   param_count;
     StmtList body;
-    bool     is_native;    /* linked to a C symbol */
-    char    *native_name;  /* the C symbol to call */
+    bool     is_native;
+    char    *native_name;
     bool     has_body;
 } FuncDecl;
 
@@ -215,8 +189,8 @@ typedef struct {
 } ChoicesDecl;
 
 typedef struct {
-    char *path;   /* file path as written */
-    char *alias;  /* aka name */
+    char *path;
+    char *alias;
 } ImportDecl;
 
 typedef enum {
@@ -234,7 +208,7 @@ typedef struct {
         ChoicesDecl   choices;
         ImportDecl    import;
     } as;
-    /* Module alias applied when this decl came from an imported file. */
+
     char *module_alias;
 } Decl;
 
@@ -246,4 +220,4 @@ typedef struct {
 
 void program_push(Program *p, Decl decl);
 
-#endif /* ROOTLANG_AST_H */
+#endif

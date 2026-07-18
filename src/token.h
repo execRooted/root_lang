@@ -3,22 +3,8 @@
 
 #include "common.h"
 
-/*
- * Lexical token categories for root_lang.
- *
- * root_lang keyword vocabulary:
- *   fn / returns / return    - function, return type, return
- *   let / const              - bindings
- *   if / else if / else      - conditionals
- *   while / for              - loops
- *   struct / enum            - aggregate and enumeration types
- *   void                     - absence of a value
- *   use ... aka ...          - module import
- *   native                   - foreign (C) linkage
- *   to                       - cast operator
- */
 typedef enum {
-    /* literals */
+
     TK_INT_LIT,
     TK_FLOAT_LIT,
     TK_DOUBLE_LIT,
@@ -26,7 +12,6 @@ typedef enum {
     TK_CHAR_LIT,
     TK_BOOL_LIT,
 
-    /* type keywords */
     TK_KW_INT,
     TK_KW_INT8,
     TK_KW_INT16,
@@ -38,43 +23,38 @@ typedef enum {
     TK_KW_FLOAT,
     TK_KW_DOUBLE,
     TK_KW_CHAR,
-    TK_KW_TEXT,     /* string type */
+    TK_KW_TEXT,
     TK_KW_BOOL,
-    TK_KW_VOID,     /* none */
+    TK_KW_VOID,
     TK_KW_ANY,
 
-    /* declaration keywords */
-    TK_KW_BLUEPRINT, /* struct */
-    TK_KW_CHOICES,   /* enum */
-    TK_KW_FN,        /* function */
-    TK_KW_GIVES,     /* returns */
-    TK_KW_GIVE,      /* return */
+    TK_KW_BLUEPRINT,
+    TK_KW_CHOICES,
+    TK_KW_FN,
+    TK_KW_GIVES,
+    TK_KW_GIVE,
     TK_KW_LET,
     TK_KW_CONST,
-    TK_KW_NATIVE,    /* extern */
+    TK_KW_NATIVE,
 
-    /* control flow keywords */
-    TK_KW_WHEN,      /* if */
-    TK_KW_ELSEWHEN,  /* else if */
-    TK_KW_ORELSE,    /* else */
-    TK_KW_LOOP,      /* while */
-    TK_KW_WALK,      /* for */
-    TK_KW_STOP,      /* break */
-    TK_KW_SKIP,      /* continue */
+    TK_KW_WHEN,
+    TK_KW_ELSEWHEN,
+    TK_KW_ORELSE,
+    TK_KW_LOOP,
+    TK_KW_WALK,
+    TK_KW_STOP,
+    TK_KW_SKIP,
 
-    /* misc keywords */
-    TK_KW_USE,       /* import */
-    TK_KW_AKA,       /* as (alias) */
-    TK_KW_TO,        /* cast operator */
-    TK_KW_NIL,       /* null */
-    TK_KW_SPANOF,    /* ArrayOf */
-    TK_KW_REFOF,     /* PointerOf */
+    TK_KW_USE,
+    TK_KW_AKA,
+    TK_KW_TO,
+    TK_KW_NIL,
+    TK_KW_SPANOF,
+    TK_KW_REFOF,
     TK_KW_SIZEOF,
 
-    /* identifiers */
     TK_IDENT,
 
-    /* operators */
     TK_PLUS,
     TK_MINUS,
     TK_STAR,
@@ -96,7 +76,6 @@ typedef enum {
     TK_NOT,
     TK_AMP,
 
-    /* punctuation */
     TK_SEMI,
     TK_COMMA,
     TK_DOT,
@@ -112,7 +91,7 @@ typedef enum {
 
 typedef struct {
     TokKind kind;
-    char   *lexeme; /* owned copy of the raw text */
+    char   *lexeme;
     int     line;
     int     col;
 } Token;
@@ -123,9 +102,8 @@ typedef struct {
     size_t  cap;
 } TokenList;
 
-/* Look up a keyword by spelling; returns TK_IDENT when not a keyword. */
 TokKind rl_keyword_lookup(const char *word);
 
 const char *rl_token_name(TokKind kind);
 
-#endif /* ROOTLANG_TOKEN_H */
+#endif

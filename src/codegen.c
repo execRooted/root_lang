@@ -1,9 +1,5 @@
 #include "codegen.h"
 
-/* ------------------------------------------------------------------ */
-/* Type environment                                                   */
-/* ------------------------------------------------------------------ */
-
 typedef struct VarSym {
     char           *name;
     Type           *type;
@@ -17,10 +13,10 @@ typedef struct Scope {
 
 typedef struct {
     Program *prog;
-    Rope     header;   /* forward decls, typedefs */
-    Rope     body;     /* function bodies */
+    Rope     header;
+    Rope     body;
     Scope   *scope;
-    Type    *current_return; /* return type of function being generated */
+    Type    *current_return;
     int      indent;
 } Gen;
 
@@ -58,10 +54,6 @@ static Type *scope_lookup(Gen *g, const char *name) {
                 return v->type;
     return NULL;
 }
-
-/* ------------------------------------------------------------------ */
-/* Declaration lookups                                                */
-/* ------------------------------------------------------------------ */
 
 static BlueprintDecl *find_blueprint(Gen *g, const char *name) {
     for (size_t i = 0; i < g->prog->count; i++)
@@ -103,14 +95,6 @@ static FuncDecl *find_func(Gen *g, const char *module, const char *name) {
     return NULL;
 }
 
-/* ------------------------------------------------------------------ */
-/* Name mangling                                                      */
-/* ------------------------------------------------------------------ */
-
-/*
- * User functions are emitted with a `rl_u_` prefix so they never collide with
- * C keywords or runtime symbols. Module functions fold the alias into the name.
- */
 static char *mangle_func(const char *module, const char *name) {
     Rope r;
     rope_init(&r);
@@ -134,10 +118,6 @@ static char *mangle_struct(const char *name) {
     rope_free(&r);
     return out;
 }
-
-/* ------------------------------------------------------------------ */
-/* Emitting C types                                                   */
-/* ------------------------------------------------------------------ */
 
 static void emit_type(Gen *g, Rope *out, Type *t);
 
@@ -184,14 +164,10 @@ static void emit_type(Gen *g, Rope *out, Type *t) {
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Expression type inference                                          */
-/* ------------------------------------------------------------------ */
-
 static Type *infer(Gen *g, Expr *e);
 
 static Type *field_type_of(Gen *g, Type *base, const char *field) {
-    /* Pseudo-fields shared by all values. */
+
     if (strcmp(field, "address") == 0)
         return type_ref(type_clone(base));
     if (strcmp(field, "value") == 0 && base->kind == TY_REF)
@@ -200,7 +176,6 @@ static Type *field_type_of(Gen *g, Type *base, const char *field) {
         (base->kind == TY_SPAN || base->kind == TY_TEXT))
         return type_new(TY_INT);
 
-    /* Named blueprint field. Auto-deref one level for refs. */
     Type *bt = base;
     if (bt->kind == TY_REF)
         bt = bt->inner;
@@ -246,7 +221,7 @@ static Type *infer(Gen *g, Expr *e) {
             break;
         default: {
             Type *lt = infer(g, e->lhs);
-            /* text + text stays text; otherwise pick the left operand. */
+
             t = type_clone(lt);
             break;
         }
@@ -301,13 +276,8 @@ static Type *infer(Gen *g, Expr *e) {
     return t;
 }
 
-/* ------------------------------------------------------------------ */
-/* Expression code generation                                         */
-/* ------------------------------------------------------------------ */
-
 static void gen_expr(Gen *g, Rope *out, Expr *e);
 
-/* Emit a text escape-safe C string literal. */
 static void gen_string_literal(Rope *out, const char *s) {
     rope_pushc(out, '"');
     for (const char *p = s; *p; p++) {
@@ -342,7 +312,6 @@ static const char *binop_c(OpKind op) {
     }
 }
 
-/* Generate an lvalue that can be assigned to, following ref/field/index. */
 static void gen_lvalue(Gen *g, Rope *out, Expr *e) {
     gen_expr(g, out, e);
 }
@@ -387,7 +356,6 @@ static void gen_field(Gen *g, Rope *out, Expr *e) {
         }
     }
 
-    /* Blueprint field: use -> for refs, . otherwise. */
     rope_pushc(out, '(');
     gen_expr(g, out, e->base);
     if (bt->kind == TY_REF)
@@ -406,7 +374,7 @@ static void gen_expr(Gen *g, Rope *out, Expr *e) {
         char buf[64];
         snprintf(buf, sizeof(buf), "%.9g", e->fval);
         rope_push(out, buf);
-        /* Guarantee a fractional part so the 'f' suffix stays valid C. */
+
         if (!strpbrk(buf, ".eEnN"))
             rope_push(out, ".0");
         rope_push(out, "f");
@@ -443,7 +411,7 @@ static void gen_expr(Gen *g, Rope *out, Expr *e) {
     case EX_BINARY: {
         Type *lt = infer(g, e->lhs);
         Type *rt = infer(g, e->rhs);
-        /* text + text -> runtime concatenation */
+
         if (e->op == OP_ADD && lt->kind == TY_TEXT && rt->kind == TY_TEXT) {
             rope_push(out, "rt_text_concat(");
             gen_expr(g, out, e->lhs);
@@ -452,7 +420,7 @@ static void gen_expr(Gen *g, Rope *out, Expr *e) {
             rope_push(out, ")");
             break;
         }
-        /* text == text -> runtime comparison */
+
         if ((e->op == OP_EQ || e->op == OP_NEQ) && lt->kind == TY_TEXT &&
             rt->kind == TY_TEXT) {
             if (e->op == OP_NEQ)
@@ -528,7 +496,7 @@ static void gen_expr(Gen *g, Rope *out, Expr *e) {
         gen_field(g, out, e);
         break;
     case EX_ARRAY_LIT: {
-        /* Copy the initializer elements into a length-tagged span. */
+
         Type *et = e->elems.count ? infer(g, e->elems.items[0])
                                   : type_new(TY_INT);
         Rope tr;
@@ -555,7 +523,7 @@ static void gen_expr(Gen *g, Rope *out, Expr *e) {
         rope_init(&tr);
         emit_type(g, &tr, e->cast_type);
         Type *st = infer(g, e->lhs);
-        /* text -> number uses runtime parse helpers. */
+
         if (st->kind == TY_TEXT &&
             (e->cast_type->kind == TY_INT || e->cast_type->kind == TY_INT64)) {
             rope_push(out, "rt_text_to_int(");
@@ -583,10 +551,6 @@ static void gen_expr(Gen *g, Rope *out, Expr *e) {
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Statement code generation                                          */
-/* ------------------------------------------------------------------ */
-
 static void gen_stmt(Gen *g, Rope *out, Stmt *s);
 
 static void emit_indent(Gen *g, Rope *out) {
@@ -606,7 +570,6 @@ static void gen_block(Gen *g, Rope *out, StmtList *body) {
     rope_push(out, "}");
 }
 
-/* Default zero-initializer for a declaration without an explicit value. */
 static void gen_default_init(Gen *g, Rope *out, Type *t) {
     switch (t->kind) {
     case TY_TEXT:
@@ -681,10 +644,10 @@ static void gen_stmt(Gen *g, Rope *out, Stmt *s) {
         gen_block(g, out, &s->then_body);
         if (s->has_else) {
             rope_push(out, " else ");
-            /* An elsewhen chain is a single nested when statement. */
+
             if (s->else_body.count == 1 &&
                 s->else_body.items[0]->kind == ST_WHEN) {
-                /* Emit the nested if inline without extra braces. */
+
                 Stmt *chained = s->else_body.items[0];
                 rope_push(out, "if (");
                 gen_expr(g, out, chained->cond);
@@ -712,7 +675,7 @@ static void gen_stmt(Gen *g, Rope *out, Stmt *s) {
         emit_indent(g, out);
         scope_push(g);
         rope_push(out, "for (");
-        /* init (no trailing semicolon/newline) */
+
         {
             Rope tr;
             rope_init(&tr);
@@ -749,10 +712,6 @@ static void gen_stmt(Gen *g, Rope *out, Stmt *s) {
         break;
     }
 }
-
-/* ------------------------------------------------------------------ */
-/* Top level declaration code generation                             */
-/* ------------------------------------------------------------------ */
 
 static void gen_func_signature(Gen *g, Rope *out, Decl *d) {
     FuncDecl *f = &d->as.func;
@@ -800,15 +759,12 @@ char *rl_generate_c(Program *program) {
     rope_init(&g.body);
     scope_push(&g);
 
-    rope_push(&g.header, "/* Generated by the root_lang compiler. Do not edit. */\n");
     rope_push(&g.header, "#include \"rootrt.h\"\n\n");
 
-    /* 1. blueprint (struct) typedefs */
     for (size_t i = 0; i < program->count; i++)
         if (program->items[i].kind == DECL_BLUEPRINT)
             gen_blueprint(&g, &g.header, &program->items[i].as.blueprint);
 
-    /* 2. function forward declarations */
     for (size_t i = 0; i < program->count; i++) {
         Decl *d = &program->items[i];
         if (d->kind != DECL_FUNC || d->as.func.is_native)
@@ -818,7 +774,6 @@ char *rl_generate_c(Program *program) {
     }
     rope_push(&g.header, "\n");
 
-    /* 3. function bodies */
     for (size_t i = 0; i < program->count; i++) {
         Decl *d = &program->items[i];
         if (d->kind != DECL_FUNC || d->as.func.is_native)
@@ -838,7 +793,6 @@ char *rl_generate_c(Program *program) {
         rope_push(&g.body, "}\n\n");
     }
 
-    /* 4. C entry point delegates to the root_lang `main`. */
     rope_push(&g.body,
               "int main(int rl_argc, char **rl_argv) {\n"
               "    (void)rl_argc; (void)rl_argv;\n"

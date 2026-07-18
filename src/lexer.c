@@ -1,7 +1,6 @@
 #include "lexer.h"
 #include <ctype.h>
 
-/* Keyword table mapping spellings to token kinds. */
 typedef struct {
     const char *word;
     TokKind     kind;
@@ -132,12 +131,11 @@ static void lex_number(Lexer *lx) {
 
     if (peek(lx) == '.' && isdigit((unsigned char)peek2(lx))) {
         is_float = true;
-        advance(lx); /* consume '.' */
+        advance(lx);
         while (isdigit((unsigned char)peek(lx)))
             advance(lx);
     }
 
-    /* Suffix 'd' forces double, 'f' forces float. */
     if (peek(lx) == 'd') {
         is_double = true;
         is_float = false;
@@ -148,7 +146,7 @@ static void lex_number(Lexer *lx) {
     }
 
     size_t len = (size_t)(&lx->src[lx->pos] - start);
-    /* Trim a trailing type suffix from the stored lexeme. */
+
     size_t store = len;
     if (store > 0 && (start[store - 1] == 'd' || start[store - 1] == 'f'))
         store--;
@@ -163,7 +161,7 @@ static void lex_number(Lexer *lx) {
 
 static void lex_string(Lexer *lx) {
     int line = lx->line, col = lx->col;
-    advance(lx); /* opening quote */
+    advance(lx);
     Rope buf;
     rope_init(&buf);
     while (peek(lx) != '"' && peek(lx) != '\0') {
@@ -186,14 +184,14 @@ static void lex_string(Lexer *lx) {
     }
     if (peek(lx) != '"')
         rl_fatal(lx->file, line, col, "unterminated text literal");
-    advance(lx); /* closing quote */
+    advance(lx);
     emit(lx, TK_STRING_LIT, buf.data, buf.len, line, col);
     rope_free(&buf);
 }
 
 static void lex_char(Lexer *lx) {
     int line = lx->line, col = lx->col;
-    advance(lx); /* opening quote */
+    advance(lx);
     char value;
     char c = advance(lx);
     if (c == '\\') {
@@ -213,7 +211,7 @@ static void lex_char(Lexer *lx) {
     }
     if (peek(lx) != '\'')
         rl_fatal(lx->file, line, col, "unterminated char literal");
-    advance(lx); /* closing quote */
+    advance(lx);
     emit(lx, TK_CHAR_LIT, &value, 1, line, col);
 }
 
@@ -240,13 +238,11 @@ TokenList rl_lex(const char *source, const char *filename) {
     while (peek(&lx) != '\0') {
         char c = peek(&lx);
 
-        /* whitespace */
         if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
             advance(&lx);
             continue;
         }
 
-        /* '#' line comments */
         if (c == '#') {
             while (peek(&lx) != '\n' && peek(&lx) != '\0')
                 advance(&lx);
@@ -272,7 +268,7 @@ TokenList rl_lex(const char *source, const char *filename) {
             continue;
         }
 
-        advance(&lx); /* consume the first char of the operator */
+        advance(&lx);
         switch (c) {
         case '+':
             if (peek(&lx) == '=') { advance(&lx); emit(&lx, TK_PLUS_EQ, "+=", 2, line, col); }
