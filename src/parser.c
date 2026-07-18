@@ -152,7 +152,7 @@ static Expr *parse_primary(Parser *p) {
     case TK_BOOL_LIT: {
         advance(p);
         Expr *e = expr_new(EX_BOOL, t->line, t->col);
-        e->bval = strcmp(t->lexeme, "yes") == 0;
+        e->bval = strcmp(t->lexeme, "true") == 0;
         return e;
     }
     case TK_KW_NIL: {
@@ -377,10 +377,19 @@ static Stmt *parse_var_decl(Parser *p) {
     return s;
 }
 
+static bool is_keyword_token(TokKind k) {
+    /* Keywords are reserved; they may not be used as a type name in a
+     * declaration, so a mistyped keyword (e.g. "give" instead of "return")
+     * is reported as an error rather than silently becoming a bogus type. */
+    return k >= TK_KW_INT;
+}
+
 static bool starts_var_decl(Parser *p) {
     if (is_base_type_token(peek(p)->kind))
         return true;
     if (!check(p, TK_IDENT))
+        return false;
+    if (is_keyword_token(peek(p)->kind))
         return false;
     size_t i = p->pos + 1;
 

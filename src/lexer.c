@@ -42,8 +42,8 @@ static const KeywordEntry KEYWORDS[] = {
     {"SpanOf",    TK_KW_SPANOF},
     {"RefOf",     TK_KW_REFOF},
     {"sizeof",    TK_KW_SIZEOF},
-    {"yes",       TK_BOOL_LIT},
-    {"no",        TK_BOOL_LIT},
+    {"true",      TK_BOOL_LIT},
+    {"false",     TK_BOOL_LIT},
     {NULL, TK_IDENT},
 };
 

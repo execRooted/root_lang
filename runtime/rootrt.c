@@ -75,7 +75,7 @@ void rt_out_uint(uint64_t v) { printf("%llu", (unsigned long long)v); }
 void rt_out_real(double v) { printf("%g", v); }
 void rt_out_text(const char *s) { fputs(s ? s : "", stdout); }
 void rt_out_char(char c) { putchar(c); }
-void rt_out_bool(bool b) { fputs(b ? "yes" : "no", stdout); }
+void rt_out_bool(bool b) { fputs(b ? "true" : "false", stdout); }
 void rt_out_newline(void) { putchar('\n'); }
 
 int32_t rt_in_int(void) {

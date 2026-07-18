@@ -190,7 +190,7 @@ int x = 5;   # trailing comment
 | `double`  | 64-bit floating point      | `double`           |
 | `char`    | single character           | `char`             |
 | `str`    | string of characters       | `char*`            |
-| `bool`    | boolean (`yes` / `no`)     | `bool`             |
+| `bool`    | boolean (`true` / `false`) | `bool`             |
 | `void`    | no value (function result) | `void`             |
 | `any`     | opaque reference, castable | `void*`            |
 | `T[]`     | array (span) of `T`        | length-tagged `T*` |
@@ -210,8 +210,8 @@ reference to an int, `int[]*` a reference to an array.
 3.14159d      # double (the 'd' suffix)
 'a'           # char
 "hello"       # str
-yes           # bool true
-no            # bool false
+true          # bool true
+false         # bool false
 nil           # null reference
 ```
 
@@ -230,11 +230,11 @@ float f = 3.14;
 double d = 3.14159d;
 char c = 'a';
 str s = "hello world";
-bool b = yes;
+bool b = true;
 ```
 
 Without an initializer, a variable takes its zero value (`0`, `0.0`, `""`,
-`no`, `nil`, or an all-zero struct):
+`false`, `nil`, or an all-zero struct):
 
 ```rtl
 int counter;      # 0
@@ -710,7 +710,7 @@ fn main() return void {
 
 ---
 
-## Grammar summary
+## Summary
 
 An informal overview of the syntax.
 
